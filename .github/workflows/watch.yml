@@ -1,0 +1,35 @@
+name: 追蹤社大公告
+
+on:
+  schedule:
+    # 時間預設是世界標準時間（UTC），台灣時間 = UTC + 8 小時。
+    # 「每小時第 17 分」兩邊一樣；若要「台灣每天早上 8 點」，UTC 是前一天 0 點：'0 0 * * *'，
+    # 或在 cron 下一行加 timezone: "Asia/Taipei"，直接寫台灣時間 '0 8 * * *'。
+    # 挑第 17 分而不是 0 分：整點最擠，容易延遲或被略過。
+    - cron: '17 * * * *'
+    - cron: '*/5 * * * *' # 驗證用：觀察最密 5 分鐘的實際延遲，驗完移除
+  workflow_dispatch: # Actions 分頁上的「Run workflow」按鈕，手動跑一次
+
+permissions:
+  contents: write # 要把紀錄檔存回儲存庫
+
+concurrency: watch # 同一時間只跑一個，避免兩次一起改紀錄檔
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: python 抓公告.py
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          NEWS_URL: ${{ vars.NEWS_URL }}
+
+      - name: 把紀錄存回儲存庫
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 看過的公告.json
+          git diff --cached --quiet || { git commit -m "更新看過的公告"; git push; }
