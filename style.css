@@ -1,0 +1,13 @@
+:root { --ink: #1f2a24; --muted: #5d6b63; --line: #cfd8d2; --bg: #f7faf8; --accent: #2f6b4f; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif; font-synthesis: none; line-height: 1.6; }
+header, main, footer { max-width: 760px; margin: 0 auto; padding: 16px; }
+header { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+header a { color: var(--accent); text-decoration: none; font-size: 1.25rem; }
+.demo { color: var(--muted); font-size: .85rem; }
+h1 { font-size: 1.6rem; font-weight: normal; }
+.news-list { list-style: none; padding: 0; }
+.news-item, .post { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.date { color: var(--muted); margin-right: .75em; }
+footer { color: var(--muted); font-size: .9rem; border-top: 1px solid var(--line); }
+footer a { color: var(--accent); }
