@@ -24,6 +24,7 @@ from urllib.parse import urljoin
 公告網址 = os.environ.get("NEWS_URL") or "https://qingshan-cc.example.org/news"
 公告格子 = "news-item"  # 每一則公告標題所在格子的 class；網站改版時改這裡
 紀錄檔 = Path(__file__).resolve().parent / "看過的公告.json"
+時間檔 = Path(__file__).resolve().parent / "抓取時間.json"
 身分 = "qingshan-news-watcher/1.0 (personal, hourly)"  # 告訴對方是誰在抓
 訊息上限 = 2000  # Discord 一則訊息最多 2000 字
 
@@ -43,7 +44,9 @@ def 允許抓取(網址):
     except urllib.error.HTTPError as 錯誤:
         if 錯誤.code in (401, 403):
             return False
-        return True  # 404 等：沒有 robots.txt
+        if 錯誤.code == 404:
+            return True  # 不存在規則檔；使用條款仍要先由人確認
+        raise SystemExit(f"無法確認 robots.txt：HTTP {錯誤.code}，這次先不抓。")
     return 規則.can_fetch(身分, 網址)
 
 
@@ -135,6 +138,15 @@ def 發通知(內容):
 
 
 def main():
+    # 抓取前就記時間；失敗也算一次，手動重跑不能繞過頻率限制。
+    現在 = time.time()
+    if 時間檔.exists():
+        上次 = json.loads(時間檔.read_text(encoding="utf-8"))
+        if 現在 - 上次["上次嘗試"] < 3600:
+            print("距離上次嘗試還不到一小時，這次不抓取。")
+            return
+    時間檔.write_text(json.dumps({"網址": 公告網址, "上次嘗試": 現在}, ensure_ascii=False) + "\n", encoding="utf-8")
+
     if not 允許抓取(公告網址):
         raise SystemExit(f"robots.txt 不允許抓 {公告網址}，停手。")
 
@@ -147,7 +159,7 @@ def main():
     if not 公告:
         # 一則都沒有，多半是網頁改版、格子換了名字。出聲，而且不要蓋掉舊紀錄。
         發通知(f"抓不到公告，網頁可能改版了：{公告網址}")
-        return
+        raise SystemExit("抓到 0 則公告，請檢查網站內容與抓取規則。")
 
     看過的 = 讀紀錄()
     if 看過的 is None:
