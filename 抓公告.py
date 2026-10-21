@@ -7,7 +7,7 @@
 環境變數：
   DISCORD_WEBHOOK  Discord 網路鉤子網址。沒設定時只印出、不發送。
                    這串網址等於密碼：不要寫進任何檔案，GitHub 上放在機密設定。
-  NEWS_URL         要抓的公告頁（選填，測試時換成自己的示範網站）。
+  NEWS_URL         要抓的公告頁（選填，預設是本課程的虛構示範站）。
 """
 
 import json
@@ -21,7 +21,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin
 
-公告網址 = os.environ.get("NEWS_URL") or "https://qingshan-cc.example.org/news"
+公告網址 = os.environ.get("NEWS_URL") or "https://feis.github.io/vcp-demo-watch-notify/news/"
 公告格子 = "news-item"  # 每一則公告標題所在格子的 class；網站改版時改這裡
 紀錄檔 = Path(__file__).resolve().parent / "看過的公告.json"
 時間檔 = Path(__file__).resolve().parent / "抓取時間.json"
